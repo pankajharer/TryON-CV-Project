@@ -36,9 +36,9 @@ A real-time **Virtual Wardrobe Try-On** application using **Flask, OpenCV, and P
 
 
    ## Contributing
-    Isha Agrawal    
+    Pankaj Harer 
     Vinayak Bhoir   
-    Pankaj Harer    
+    Isha Agrawal  
     Pratik Yelkar
 
 ### Screnshots
