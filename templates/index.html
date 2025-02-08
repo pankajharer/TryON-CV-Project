@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Try-On Wardrobe</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f3f4f6, #d7e9f7);
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0077b6, #0096c7);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        header p {
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+
+        #main-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        #video-container {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #video-feed {
+            width: 100%;
+            height: auto;
+            max-height: 600px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        #options-container {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .selection-container {
+            margin-bottom: 20px;
+        }
+
+        .selection-container label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0077b6;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .button-group button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            outline: none;
+        }
+
+        .button-group button img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .button-group button img:hover {
+            border-color: #0077b6;
+            transform: scale(1.1);
+        }
+
+        .button-group button.active img {
+            border-color: #28a745;
+            transform: scale(1.1);
+        }
+
+        #apply-accessories {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        #apply-accessories:hover {
+            background-color: #218838;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Virtual Try-On Wardrobe</h1>
+        <p>Experience the future of shopping with our virtual wardrobe. Try on hats, glasses, and shirts without leaving your home!</p>
+    </header>
+
+    <div id="main-container">
+
+        <!-- Video Feed -->
+        <div id="video-container">
+            <img src="{{ url_for('video_feed') }}" alt="Video Feed" id="video-feed">
+        </div>
+
+        <!-- Options Panel -->
+        <div id="options-container">
+            <!-- Hat Selection -->
+            <div class="selection-container">
+                <label>Select a Hat:</label>
+                <div class="button-group" id="hat-buttons">
+                    <!-- Hat buttons will be dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Glasses Selection -->
+            <div class="selection-container">
+                <label>Select Glasses:</label>
+                <div class="button-group" id="glasses-buttons">
+                    <!-- Glasses buttons will be dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Shirt Selection -->
+            <div class="selection-container">
+                <label>Select a Shirt:</label>
+                <div class="button-group" id="shirt-buttons">
+                    <!-- Shirt buttons will be dynamically populated -->
+                </div>
+            </div>
+
+            <button id="apply-accessories">Apply Accessories</button>
+        </div>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let selectedHat = null;
+            let selectedGlasses = null;
+            let selectedShirt = null;
+
+            // Fetch the item paths dynamically
+            $.get('/get_items', function (data) {
+                const { hats, glasses, shirts } = data;
+
+                // Populate hat buttons
+                hats.forEach((path, index) => {
+                    $('#hat-buttons').append(`
+                        <button data-index="${index}" class="hat-button">
+                            <img src="${path}" alt="Hat ${index + 1}">
+                        </button>
+                    `);
+                });
+
+                // Populate glasses buttons
+                glasses.forEach((path, index) => {
+                    $('#glasses-buttons').append(`
+                        <button data-index="${index}" class="glasses-button">
+                            <img src="${path}" alt="Glasses ${index + 1}">
+                        </button>
+                    `);
+                });
+
+                // Populate shirt buttons
+                shirts.forEach((path, index) => {
+                    $('#shirt-buttons').append(`
+                        <button data-index="${index}" class="shirt-button">
+                            <img src="${path}" alt="Shirt ${index + 1}">
+                        </button>
+                    `);
+                });
+            });
+
+            // Handle button clicks
+            $(document).on('click', '.hat-button', function () {
+                selectedHat = $(this).data('index');
+                $('.hat-button').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            $(document).on('click', '.glasses-button', function () {
+                selectedGlasses = $(this).data('index');
+                $('.glasses-button').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            $(document).on('click', '.shirt-button', function () {
+                selectedShirt = $(this).data('index');
+                $('.shirt-button').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Apply accessories
+            $('#apply-accessories').click(function () {
+                if (selectedHat !== null) {
+                    $.post('/change_hat', { hatIndex: selectedHat });
+                }
+                if (selectedGlasses !== null) {
+                    $.post('/change_glasses', { glassesIndex: selectedGlasses });
+                }
+                if (selectedShirt !== null) {
+                    $.post('/change_shirt', { shirtIndex: selectedShirt });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

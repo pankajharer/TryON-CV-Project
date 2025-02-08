@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Stream</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>WebRTC Webcam Stream</h1>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <script>
+        const socket = io();
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+
+        const config = {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        };
+
+        async function startWebRTC() {
+            try {
+                // Get the local video stream
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                localVideo.srcObject = localStream;
+
+                // Initialize the RTCPeerConnection
+                peerConnection = new RTCPeerConnection(config);
+
+                // Add local stream tracks to the connection
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                // Handle remote stream
+                peerConnection.ontrack = event => {
+                    if (!remoteStream) {
+                        remoteStream = new MediaStream();
+                        remoteVideo.srcObject = remoteStream;
+                    }
+                    remoteStream.addTrack(event.track);
+                };
+
+                // Handle ICE candidates
+                peerConnection.onicecandidate = event => {
+                    if (event.candidate) {
+                        socket.emit('candidate', event.candidate);
+                    }
+                };
+
+                // Offer connection
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                // Send the offer to the server
+                socket.emit('offer', offer);
+
+            } catch (error) {
+                console.error('Error starting WebRTC:', error);
+            }
+        }
+
+        socket.on('offer', async offer => {
+            if (!peerConnection) {
+                peerConnection = new RTCPeerConnection(config);
+                remoteStream = new MediaStream();
+                remoteVideo.srcObject = remoteStream;
+
+                // Add local stream tracks to the connection
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                peerConnection.ontrack = event => {
+                    remoteStream.addTrack(event.track);
+                };
+
+                peerConnection.onicecandidate = event => {
+                    if (event.candidate) {
+                        socket.emit('candidate', event.candidate);
+                    }
+                };
+            }
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            socket.emit('answer', answer);
+        });
+
+        socket.on('answer', async answer => {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+
+        socket.on('candidate', candidate => {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+
+        // Start WebRTC on page load
+        startWebRTC();
+    </script>
+</body>
+</html>
