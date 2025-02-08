@@ -1,8 +1,20 @@
+#  Virtual Wardrobe Try-On
+
+A real-time **Virtual Wardrobe Try-On** application using **Flask, OpenCV, and Pose Detection**. Users can try different **hats, glasses, and shirts** on a live webcam feed.
+
+## Features
+ **Real-time virtual try-on** using a webcam  
+ **Face & pose detection** for accurate overlay placement  
+ **Dynamic accessory switching** (hats, glasses, shirts)  
+ **Lightweight & fast processing**  
+
+
 ## Setup Instructions
 1. **Install Python**: [Download Python](https://www.python.org/downloads/).
 2. **Clone the repository**:
    ```bash
-   https://github.com/VinayakBhoir/virtual-tryon-project.git
+   git clone https://github.com/pankajharer/VirtualTryON-CV-Project.git
+
     ```
 
 3. Open the project in Visual Studio Code.
@@ -24,7 +36,7 @@
 
 
    ## Contributing
-    Isha Agrawal   ( rollno: 155 )  
-    Vinayak Bhoir  ( rollno: 150 )  
-    Pankaj Harer   ( rollno: 231 )  
-    Pratik Yelkar  ( rollno: 157 )  
+    Isha Agrawal    
+    Vinayak Bhoir   
+    Pankaj Harer    
+    Pratik Yelkar   
